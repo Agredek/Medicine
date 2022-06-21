@@ -29,7 +29,7 @@ namespace Medicine
     {
         /// <summary> Set this to true to allow the component to be missing. </summary>
         /// <remarks> By default, [Inject] will log an error if the component is missing (or if the array of components is empty). </remarks>
-        public bool Optional { get; set; } = false;
+        public bool Optional { get; set; }
 
         /// <summary>
         /// Automatically calls <see cref="GameObject.GetComponent{T}()"/> every time the property is accessed.
@@ -39,7 +39,9 @@ namespace Medicine
         [MeansImplicitUse]
         [UsedImplicitly(WithMembers)]
         [AttributeUsage(Property)]
-        public sealed class Lazy : Attribute { }
+        public sealed class Lazy : Attribute
+        {
+        }
 
         /// <summary>
         /// Automatically initializes the property in Awake() with a component (or an array of components)
@@ -53,14 +55,14 @@ namespace Medicine
         {
             /// <summary> Set this to true to allow the component to be missing. </summary>
             /// <remarks> By default, [Inject.FromChildren] will log an error if the component is missing (or if the array of components is empty). </remarks>
-            public bool Optional { get; set; } = false;
+            public bool Optional { get; set; }
 
             /// <summary> Set this to true to include components on inactive child GameObjects. Components on the root GameObject are always included. </summary>
             /// <remarks> Keep in mind that this has nothing to do with whether the component is enabled - disabled components are included if the GameObject is active. </remarks>
-            public bool IncludeInactive { get; set; } = false;
+            public bool IncludeInactive { get; set; }
 
             /// <summary>
-            /// Automatically calls <see cref="GameObject.GetComponentInChildren{T}"/> every time the property is accessed.
+            /// Automatically calls <see cref="GameObject.GetComponentInChildren{T}()"/> every time the property is accessed.
             /// WARNING: Make sure you use the result array directly and not store any references to it, as they may become invalid on next call.
             /// </summary>
             /// <remarks> A non-allocating variant of the method is used to limit GC allocation. </remarks>
@@ -71,7 +73,7 @@ namespace Medicine
             {
                 /// <summary> Set this to true to include components on inactive child GameObjects. Components on the root GameObject are always included. </summary>
                 /// <remarks> Keep in mind that this has nothing to do with whether the component is enabled - disabled components are included if the GameObject is active. </remarks>
-                public bool IncludeInactive { get; set; } = false;
+                public bool IncludeInactive { get; set; }
             }
         }
 
@@ -87,7 +89,7 @@ namespace Medicine
         {
             /// <summary> Set this to true to allow the component to be missing. </summary>
             /// <remarks> By default, [Inject.FromParents] will log an error if the component is missing (or if the array of components is empty). </remarks>
-            public bool Optional { get; set; } = false;
+            public bool Optional { get; set; }
 
             /// <summary> Set this to true to include components on inactive parent GameObjects. Components on the root GameObject are always included. </summary>
             /// <remarks>
@@ -96,11 +98,11 @@ namespace Medicine
             /// Keep in mind that this has nothing to do with whether the component is enabled - disabled components are included if the GameObject is active.
             /// </remarks>
 #if UNITY_2020_1_OR_NEWER // this wasn't actually supported in GetComponentsInParent before 2020.1
-            public bool IncludeInactive { get; set; } = false;
+            public bool IncludeInactive { get; set; }
 #endif
 
             /// <summary>
-            /// Automatically calls <see cref="GameObject.GetComponentInParent{T}"/> every time the property is accessed.
+            /// Automatically calls <see cref="GameObject.GetComponentInParent{T}()"/> every time the property is accessed.
             /// WARNING: Make sure you use the result array directly and not store any references to it, as they may become invalid on next call.
             /// </summary>
             /// <remarks> A non-allocating variant of the method is used to limit GC allocation. </remarks>
@@ -111,7 +113,7 @@ namespace Medicine
             {
                 /// <summary> Set this to true to include components on inactive parent GameObjects. Components on the root GameObject are always included. </summary>
                 /// <remarks> Keep in mind that this has nothing to do with whether the component is enabled - disabled components are included if the GameObject is active. </remarks>
-                public bool IncludeInactive { get; set; } = false;
+                public bool IncludeInactive { get; set; }
             }
         }
 
@@ -125,7 +127,9 @@ namespace Medicine
         [MeansImplicitUse]
         [UsedImplicitly(WithMembers)]
         [AttributeUsage(Property)]
-        public sealed class Single : Attribute { }
+        public sealed class Single : Attribute
+        {
+        }
 
         /// <summary>
         /// Makes the property return the set of currently active objects of this type.
@@ -137,7 +141,22 @@ namespace Medicine
         [MeansImplicitUse]
         [UsedImplicitly(WithMembers)]
         [AttributeUsage(Property)]
-        public sealed class All : Attribute { }
+        public sealed class All : Attribute
+        {
+        }
+
+        /// <summary>
+        ///     Automatically initializes the property in Awake() with a component
+        ///     from the current GameObject using <see cref="UnityEngine.Object.FindObjectOfType{T}()"/>. <br />
+        ///     If component hasn't been found, a new GameObject will be created and component will be assigned to it
+        ///     before this method returns.
+        /// </summary>
+        [MeansImplicitUse]
+        [UsedImplicitly(WithMembers)]
+        [AttributeUsage(Property)]
+        public sealed class FindOrCreate : Attribute
+        {
+        }
     }
 
     /// <summary>

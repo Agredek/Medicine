@@ -13,20 +13,20 @@ namespace Medicine
 {
     sealed class PostProcessorReflectionImporter : DefaultReflectionImporter
     {
-        const string SystemPrivateCoreLib = "System.Private.CoreLib";
-        readonly AssemblyNameReference correctCorlib;
+        private const string SystemPrivateCoreLib = "System.Private.CoreLib";
+        private readonly AssemblyNameReference _correctCorlib;
 
         public PostProcessorReflectionImporter(ModuleDefinition module) : base(module)
-            => correctCorlib = module
+            => _correctCorlib = module
                 .AssemblyReferences
                 .FirstOrDefault(
                     assembly => assembly.Name == "mscorlib" || assembly.Name == "netstandard" || assembly.Name == SystemPrivateCoreLib
                 );
 
         public override AssemblyNameReference ImportReference(AssemblyName reference)
-            => correctCorlib == null || reference.Name != SystemPrivateCoreLib
+            => _correctCorlib == null || reference.Name != SystemPrivateCoreLib
                 ? base.ImportReference(reference)
-                : correctCorlib;
+                : _correctCorlib;
     }
 
     sealed class PostProcessorReflectionImporterProvider : IReflectionImporterProvider
@@ -37,22 +37,22 @@ namespace Medicine
 
     sealed class PostProcessorAssemblyResolver : IAssemblyResolver
     {
-        readonly Dictionary<(string filename, DateTime modified), AssemblyDefinition> cache
+        private readonly Dictionary<(string filename, DateTime modified), AssemblyDefinition> _cache
             = new Dictionary<(string, DateTime), AssemblyDefinition>();
 
-        readonly string compiledAssemblyName;
-        readonly string[] referenceDirectoryNames;
-        readonly string[] referenceFileNames;
-        readonly string[] references;
+        private readonly string _compiledAssemblyName;
+        private readonly string[] _referenceDirectoryNames;
+        private readonly string[] _referenceFileNames;
+        private readonly string[] _references;
 
-        AssemblyDefinition selfAssembly;
+        private AssemblyDefinition _selfAssembly;
 
         public PostProcessorAssemblyResolver(ICompiledAssembly compiledAssembly)
         {
-            compiledAssemblyName = compiledAssembly.Name;
-            references = compiledAssembly.References;
-            referenceFileNames = references.Select(Path.GetFileName).ToArray();
-            referenceDirectoryNames = references.Select(Path.GetDirectoryName).Distinct().ToArray();
+            _compiledAssemblyName = compiledAssembly.Name;
+            _references = compiledAssembly.References;
+            _referenceFileNames = _references.Select(Path.GetFileName).ToArray();
+            _referenceDirectoryNames = _references.Select(Path.GetDirectoryName).Distinct().ToArray();
         }
 
         public AssemblyDefinition Resolve(AssemblyNameReference name)
@@ -60,8 +60,8 @@ namespace Medicine
 
         public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {
-            if (name.Name == compiledAssemblyName)
-                return selfAssembly;
+            if (name.Name == _compiledAssemblyName)
+                return _selfAssembly;
 
             string filename = FindFile(name).Replace('\\', '/');
             if (string.IsNullOrWhiteSpace(filename))
@@ -69,7 +69,7 @@ namespace Medicine
 
             var cacheKey = (fileName: filename, File.GetLastWriteTime(filename));
 
-            if (cache.TryGetValue(cacheKey, out var result))
+            if (_cache.TryGetValue(cacheKey, out var result))
                 return result;
 
             parameters.AssemblyResolver = this;
@@ -85,7 +85,7 @@ namespace Medicine
                 parameters.SymbolStream = MemoryStreamFor(candidate2);
 
             var assemblyDefinition = AssemblyDefinition.ReadAssembly(ms, parameters);
-            cache.Add(cacheKey, assemblyDefinition);
+            _cache.Add(cacheKey, assemblyDefinition);
             return assemblyDefinition;
         }
 
@@ -107,7 +107,7 @@ namespace Medicine
                 }
             );
 
-            resolver.selfAssembly = assemblyDefinition;
+            resolver._selfAssembly = assemblyDefinition;
 
             return assemblyDefinition;
         }
@@ -121,17 +121,17 @@ namespace Medicine
             string nameStringDll = nameString + ".dll";
             string nameStringExe = nameString + ".exe";
 
-            for (var i = 0; i < referenceFileNames.Length; i++)
+            for (var i = 0; i < _referenceFileNames.Length; i++)
             {
-                string referenceFileName = referenceFileNames[i];
+                string referenceFileName = _referenceFileNames[i];
 
                 if (referenceFileName == nameStringDll)
-                    return references[i];
+                    return _references[i];
                 if (referenceFileName == nameStringExe)
-                    return references[i];
+                    return _references[i];
             }
 
-            foreach (var parentDir in referenceDirectoryNames)
+            foreach (var parentDir in _referenceDirectoryNames)
             {
                 string candidate = Path.Combine(parentDir, nameStringDll);
                 if (File.Exists(candidate))

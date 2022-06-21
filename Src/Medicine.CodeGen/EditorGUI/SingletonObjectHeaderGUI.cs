@@ -8,9 +8,9 @@ using Object = UnityEngine.Object;
 [InitializeOnLoad]
 static class SingletonObjectHeaderGUI
 {
-    static readonly Type[] typesWithInjectSingleAttribute;
+    private static readonly Type[] TypesWithInjectSingleAttribute;
 
-    static readonly GUIContent label = new GUIContent(
+    private static readonly GUIContent Label = new GUIContent(
         text: "Set as current active singleton instance",
         tooltip: "This adds the ScriptableObject to Preloaded Assets (in Player Settings), which makes it resolvable using [Inject.Single]."
     );
@@ -18,8 +18,8 @@ static class SingletonObjectHeaderGUI
     static SingletonObjectHeaderGUI()
     {
         var types = TypeCache.GetTypesWithAttribute<Register.Single>();
-        typesWithInjectSingleAttribute = new Type[types.Count];
-        types.CopyTo(typesWithInjectSingleAttribute, 0);
+        TypesWithInjectSingleAttribute = new Type[types.Count];
+        types.CopyTo(TypesWithInjectSingleAttribute, 0);
 
         Editor.finishedDefaultHeaderGUI += DrawSingletonGUI;
     }
@@ -35,11 +35,10 @@ static class SingletonObjectHeaderGUI
         if (editorTargets.Length > 1)
             return;
 
-        var targetObject = target;
-        var type = targetObject.GetType();
+        var type = target.GetType();
 
         bool hasInjectSingleAttr
-            = Array.IndexOf(typesWithInjectSingleAttribute, type) >= 0;
+            = Array.IndexOf(TypesWithInjectSingleAttribute, type) >= 0;
 
         if (!hasInjectSingleAttr)
             return;
@@ -49,7 +48,7 @@ static class SingletonObjectHeaderGUI
         bool isAdded = false;
 
         foreach (var asset in preloadedAssets)
-            if (asset == targetObject)
+            if (asset == target)
                 isAdded = true;
 
         var controlRect = EditorGUILayout.GetControlRect(
@@ -63,9 +62,9 @@ static class SingletonObjectHeaderGUI
         color.a = 0.8f;
         GUI.color = color;
 
-        bool shouldBeAdded = EditorGUI.ToggleLeft(
+        var shouldBeAdded = EditorGUI.ToggleLeft(
             position: controlRect,
-            label: label,
+            label: Label,
             value: isAdded
         );
 
@@ -83,7 +82,7 @@ static class SingletonObjectHeaderGUI
                 preloadedAssetsList.Add(asset);
 
         if (shouldBeAdded)
-            preloadedAssetsList.Add(targetObject);
+            preloadedAssetsList.Add(target);
 
         PlayerSettings.SetPreloadedAssets(preloadedAssetsList.ToArray());
 
@@ -93,14 +92,14 @@ static class SingletonObjectHeaderGUI
             var helper = typeof(RuntimeHelpers.Singleton<>).MakeGenericType(type);
             
             // get current singleton instance
-            var currentInstance = helper.GetField("instance", Static | NonPublic).GetValue(null);
+            var currentInstance = helper.GetField("instance", Static | NonPublic)?.GetValue(null);
 
             // unregister current singleton instance
             if (currentInstance as Object)
-                helper.GetMethod("UnregisterInstance", Static | Public).Invoke(null, new[] { currentInstance });
+                helper.GetMethod("UnregisterInstance", Static | Public)?.Invoke(null, new[] { currentInstance });
 
             // replace with new singleton instance
-            helper.GetMethod("RegisterInstance", Static | Public).Invoke(null, new object[] { targetObject });
+            helper.GetMethod("RegisterInstance", Static | Public)?.Invoke(null, new object[] {target});
         }
     }
 }

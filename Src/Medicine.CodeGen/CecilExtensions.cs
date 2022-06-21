@@ -16,7 +16,7 @@ namespace Medicine
         static readonly ThreadLocal<ModuleDefinition> currentModule
             = new ThreadLocal<ModuleDefinition>();
 
-        static readonly int sourceDirectoryTrimLength
+        private static readonly int SourceDirectoryTrimLength
             = Environment.CurrentDirectory.Length + 1;
 
         public static ModuleDefinition CurrentModule
@@ -28,9 +28,9 @@ namespace Medicine
         public static string GetFilenameLineColumnString(this MethodDebugInformation methodDebugInformation)
         {
             if (methodDebugInformation.SequencePoints.FirstOrDefault() is SequencePoint seq)
-                return $" (at {seq.Document.Url.Substring(sourceDirectoryTrimLength).Replace('\\', '/')}:{seq.StartLine})";
+                return $" (at {seq.Document.Url.Substring(SourceDirectoryTrimLength).Replace('\\', '/')}:{seq.StartLine})";
 
-            return "";
+            return string.Empty;
         }
 
         public static DiagnosticMessage GetDiagnosticMessage(this MethodDefinition method, string messageData, DiagnosticType diagnosticType = DiagnosticType.Warning)
@@ -83,14 +83,10 @@ namespace Medicine
             => CurrentModule.ImportReference(fieldInfo);
 
         public static TypeDefinition ResolveFast(this TypeReference typeReference)
-            => typeReference is TypeDefinition typeDefinition
-                ? typeDefinition
-                : typeReference.Resolve();
+            => typeReference as TypeDefinition ?? typeReference.Resolve();
 
         public static FieldDefinition ResolveFast(this FieldReference fieldReference)
-            => fieldReference is FieldDefinition fieldDefinition
-                ? fieldDefinition
-                : fieldReference.Resolve();
+            => fieldReference as FieldDefinition ?? fieldReference.Resolve();
 
         public static bool HasAttribute<T>(this ICustomAttributeProvider type) where T : System.Attribute
         {

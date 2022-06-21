@@ -1,17 +1,16 @@
 # Me*di*cine
 ### Code-driven component injection toolkit for [Unity](https://unity.com/).
+### Fork of: `https://github.com/apkd/Medicine.git`
 
 Sick and tired of assigning references between components by hand (and losing them when something goes wrong with Unity serialization)? Having a migraine from all the `GetComponent` calls sprinkled all over your codebase?
 
 ***Medicine*** is a collection of attributes that give you a code-driven, performance-oriented way to automatically hook up references between your components. Additionally, it comes with a toolbox of optimized versions of many standard component-related operations.
 
-> **Warning!** This library is experimental. Please [let me know](https://github.com/apkd/medicine/issues) about any issues you encounter.
-
 ## How to install
 Compatibility: ***Unity 2019.3 or newer***
 
 Open "Add package from git URL" in the Unity Package Manager and paste the repository URL:
-##### `https://github.com/apkd/Medicine.git`
+##### `https://github.com/agredek/Medicine.git`
 
 ## Features/examples
 #### Write cleaner components

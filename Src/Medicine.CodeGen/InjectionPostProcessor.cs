@@ -177,7 +177,7 @@ namespace Medicine
                     if (attribute.Is<Inject.All>())
                     {
                         if (!isInterface && !isMonoBehaviour && !isScriptableObject)
-                            throw new MedicineError($"Type of property with [Inject.Single] needs to be an array of MonoBehaviours, ScriptableObjects, or interfaces.", property);
+                            throw new MedicineError($"Type of property with [Inject.All] needs to be an array of MonoBehaviours, ScriptableObjects, or interfaces.", property);
 
                         if (!isArray)
                             throw new MedicineError($"Type of property with {attribute.GetName()} needs to be an array.", property);
@@ -188,6 +188,24 @@ namespace Medicine
                         // resolve objects registered using [Register.All]
                         ReplacePropertyGetterWithHelperMethod(type, property, MethodInfos.RuntimeHelpers.Collection.GetInstance);
                         continue;
+                    }
+
+                    if (attribute.Is<Inject.FindOrCreate>())
+                    {
+                        if (!isInterface && !isCamera && !isMonoBehaviour && !isScriptableObject)
+                            throw new MedicineError($"Type of property with [Inject.FindOrCreate] needs to be a MonoBehaviour, a ScriptableObject, UnityEngine.Camera or an interface.", property);
+
+                        if (isArray)
+                            throw new MedicineError($"Type of property with [Inject.FindOrCreate] must not be an array.", property);
+
+                        if (property.SetMethod != null)
+                            throw new MedicineError($"Property with [Inject.FindOrCreate] must not have a setter.", property);
+                        
+                        if (!propertyType.HasAttribute<Register.Single>())
+                            throw new MedicineError($"Type <i><b>{propertyType.FullName}</b></i> needs to be decorated with the [Register.Single] attribute in order to support collection injection.", property);
+                        
+                        // resolve object registered using [Register.FindOrCreate]
+                        ReplacePropertyGetterWithHelperMethod(type, property, MethodInfos.RuntimeHelpers.InjectOrCreate);
                     }
 
                     if (!isInterface && !isComponent)

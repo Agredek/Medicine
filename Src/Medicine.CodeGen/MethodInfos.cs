@@ -68,6 +68,9 @@ namespace Medicine
 
             internal static readonly MethodInfo InjectFromParentsArrayIncludeInactive
                 = typeof(Medicine.RuntimeHelpers).GetMethod(nameof(Medicine.RuntimeHelpers.InjectFromParentsArrayIncludeInactive), Public | Static);
+            
+            internal static readonly MethodInfo InjectOrCreate
+                = typeof(Medicine.RuntimeHelpers).GetMethod(nameof(Medicine.RuntimeHelpers.InjectOrCreate), Public | Static);
 
             internal static class Collection
             {

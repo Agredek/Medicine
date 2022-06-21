@@ -1,7 +1,7 @@
 {
   "name": "pl.apkd.medicine",
   "displayName": "Medicine",
-  "version": "1.0.0-preview",
+  "version": "1.0.1-preview",
   "unity": "2020.1",
   "unityRelease": "0b11",
   "dependencies": {

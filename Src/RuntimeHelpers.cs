@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 using static System.Runtime.CompilerServices.MethodImplOptions;
 using Obj = UnityEngine.Object;
@@ -98,6 +99,25 @@ namespace Medicine
         public static T[] InjectFromParentsArrayIncludeInactive<T>(GameObject context)
             => context.GetComponentsInParent<T>(includeInactive: true);
 
+        /// <remarks>
+        /// This is a helper method. You don't usually need to use it directly. <br />
+        /// This method searches for the <typeparamref name="T"/> component on passed GameObject.
+        /// If it's missing then it searches the whole scene using <see cref="UnityEngine.Object.FindObjectOfType{T}()"/>.
+        /// If still no component has been found, it creates a new GameObject and attaches <typeparamref name="T"/> to it.
+        /// </remarks>
+        [MethodImpl(AggressiveInlining)]
+        public static T InjectOrCreate<T>(GameObject context) where T : Component
+        {
+            var component = context.GetComponent<T>();
+            if (component)
+                return component;
+
+            component = Obj.FindObjectOfType<T>();
+            if (!component)
+                component = new GameObject(component.name).AddComponent<T>();
+            return component;
+        }
+
         public static class Lazy
         {
             /// <remarks> This is a helper method. You don't usually need to use it directly. See <see cref="Inject.Lazy"/> to learn more. </remarks>
@@ -127,19 +147,17 @@ namespace Medicine
         }
 
 #if UNITY_EDITOR
-        [UsedImplicitly]
-        static Action reinitializeAction;
-        
-        [UsedImplicitly]
-        static Action debugAction;
+        [UsedImplicitly] static Action reinitializeAction;
+
+        [UsedImplicitly] static Action debugAction;
 
         /// <summary>
         /// forces preloaded assets initialization in editor (eg. to make singletons register themselves)
         /// inexplicably, Unity doesn't do this by default
         /// </summary>
-        [UnityEditor.InitializeOnLoadMethod]
+        [InitializeOnLoadMethod]
         static void EditorInitializeOnLoad()
-            => UnityEditor.PlayerSettings.GetPreloadedAssets();
+            => PlayerSettings.GetPreloadedAssets();
 
         // static RuntimeHelpers()
         //     => UnityEditor.EditorApplication.playModeStateChanged += (x) =>
@@ -148,11 +166,11 @@ namespace Medicine
         //             reinitializeAction?.Invoke();
         //     };
 
-        [UnityEditor.MenuItem("Tools/Medicine/List registered objects")]
+        [MenuItem("Tools/Medicine/List registered objects")]
         static void MenuCommandDebug()
             => debugAction?.Invoke();
 
-        [UnityEditor.MenuItem("Tools/Medicine/Clear registered objects")]
+        [MenuItem("Tools/Medicine/Clear registered objects")]
         static void MenuCommandReinitialize()
             => reinitializeAction?.Invoke();
 #endif

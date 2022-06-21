@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 namespace Medicine
 {
     [UsedImplicitly]
-    sealed class MedicineILPostProcessor : ILPostProcessor
+    internal sealed class MedicineILPostProcessor : ILPostProcessor
     {
         public override ILPostProcessor GetInstance()
             => this;
@@ -30,19 +30,17 @@ namespace Medicine
             return false;
 #endif
 
-            if (compiledAssemblyName == "Unity.Medicine.CodeGen")
-                return false;
+            switch (compiledAssemblyName)
+            {
+                case "Unity.Medicine.CodeGen":
+                case "Medicine":
+                    return false;
+                case "Assembly-CSharp":
+                case "Assembly-CSharp-firstpass":
+                    return true;
+            }
 
-            if (compiledAssemblyName == "Medicine")
-                return false;
-
-            if (compiledAssemblyName == "Assembly-CSharp")
-                return true;
-
-            if (compiledAssemblyName == "Assembly-CSharp-firstpass")
-                return true;
-
-            foreach (string reference in compiledAssembly.References)
+            foreach (var reference in compiledAssembly.References)
                 if (reference.EndsWith("Medicine.dll", Ordinal))
                     return true;
 
@@ -51,12 +49,10 @@ namespace Medicine
 
         public ILPostProcessResult PostProcessInternal(ICompiledAssembly compiledAssembly)
         {
-            AssemblyDefinition assemblyDefinition;
-
 #if MEDICINE_IL_DEBUG
             using (NonAlloc.Benchmark.Start($"GetAssemblyDefinition ({compiledAssembly.Name})"))
 #endif
-                assemblyDefinition = PostProcessorAssemblyResolver.GetAssemblyDefinitionFor(compiledAssembly);
+            var assemblyDefinition = PostProcessorAssemblyResolver.GetAssemblyDefinitionFor(compiledAssembly);
 
             try
             {
@@ -70,7 +66,7 @@ namespace Medicine
 #if MEDICINE_IL_DEBUG
                 using (NonAlloc.Benchmark.Start($"MedicineInjection ({compiledAssembly.Name})"))
 #endif
-                    new InjectionPostProcessor(context).ProcessAssembly();
+                new InjectionPostProcessor(context).ProcessAssembly();
 
                 var pe = new MemoryStream(capacity: 1024 * 64);
                 var pdb = new MemoryStream(capacity: 1024 * 16);
@@ -94,7 +90,7 @@ namespace Medicine
                     MessageData = $"Unexpected exception while post-processing assembly {compiledAssembly.Name}:\n{ex}",
                     DiagnosticType = DiagnosticType.Error,
                 };
-                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, new List<DiagnosticMessage> { error });
+                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, new List<DiagnosticMessage> {error});
             }
             finally
             {
@@ -113,7 +109,7 @@ namespace Medicine
 #if MEDICINE_IL_DEBUG
                 using (NonAlloc.Benchmark.Start($"PostProcessInternal ({compiledAssembly.Name})"))
 #endif
-                    return PostProcessInternal(compiledAssembly);
+                return PostProcessInternal(compiledAssembly);
             }
             catch (Exception ex)
             {
